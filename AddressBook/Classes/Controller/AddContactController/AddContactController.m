@@ -21,6 +21,7 @@
 @property (weak, nonatomic) IBOutlet UIImageView *imageView;
 @property (weak, nonatomic) IBOutlet UIButton *chooseImageButton;
 @property (weak, nonatomic) IBOutlet UIButton *saveButton;
+@property (weak, nonatomic) IBOutlet UIButton *deleteButton;
 
 @end
 
@@ -30,16 +31,15 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     
+    self.deleteButton.enabled=NO;
+    self.deleteButton.hidden = YES;
+    
     if (self.contactProfile)
     {
         [self addRightNavigationButton];
         [self showInformationForContact: self.contactProfile];
     }
-    
-   // [self updateColors];
-    
-    //[self reloadInputViews];
-    // Do any additional setup after loading the view.
+
 }
 
 - (void)didReceiveMemoryWarning {
@@ -51,10 +51,10 @@
 {
     [self updateColors];
 }
+
 #pragma mark - Button actions
 -(IBAction)saveAction:(UIButton*)sender
 {
-    //hide keyboard
     [self.nameTextField resignFirstResponder];
     [self.lastNameTextField resignFirstResponder];
     [self.phoneTextField resignFirstResponder];
@@ -68,32 +68,28 @@
     UIImage * photoImage = self.imageView.image;
     NSData * imageData = UIImagePNGRepresentation(photoImage);
     
-   // NSString * newContactPath = [self createNewContactFileAndGetPath];
     if ([name length] || [lastName length])
     {
-    NSMutableDictionary * contactProperties;
-    if (!self.contactProfile)
-        contactProperties = [self createNewContactFile];
-    else
-        contactProperties = self.contactProfile;
-    //[[NSMutableDictionary alloc] initWithContentsOfFile:newContactPath];
-    [contactProperties setValue:name forKey:@"Name"];
-    [contactProperties setValue:lastName forKey:@"Last Name"];
-    [contactProperties setValue:phone forKey:@"Phone Number"];
-    [contactProperties setValue:email forKey:@"Email"];
-    
-    NSString * contactDirectoryPath = [self getContactDirectoryPath];
-    
-    NSUInteger index = [[contactProperties valueForKey:@"index"] integerValue];
-    NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
-    NSString * newContactPath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
-
-    NSString * contactImagePath = [[newContactPath stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
-    //[contactProperties setValue:contactImagePath forKey:@"imagePath"];
-    //[contactProperties setValue:newContactPath forKey:@"contactPath"];
-    
-    [contactProperties writeToFile:newContactPath atomically:YES];
-    [imageData writeToFile:contactImagePath atomically:YES];
+        NSMutableDictionary * contactProperties;
+        if (!self.contactProfile)
+            contactProperties = [self createNewContactFile];
+        else
+            contactProperties = self.contactProfile;
+        
+        [contactProperties setValue:name forKey:@"Name"];
+        [contactProperties setValue:lastName forKey:@"Last Name"];
+        [contactProperties setValue:phone forKey:@"Phone Number"];
+        [contactProperties setValue:email forKey:@"Email"];
+        
+        NSString * contactDirectoryPath = [self getContactDirectoryPath];
+        
+        NSUInteger index = [[contactProperties valueForKey:@"index"] integerValue];
+        NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
+        NSString * newContactPath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+        NSString * contactImagePath = [[newContactPath stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
+        
+        [contactProperties writeToFile:newContactPath atomically:YES];
+        [imageData writeToFile:contactImagePath atomically:YES];
     
         dispatch_async(dispatch_get_main_queue(), ^{
         [self blockEditing];
@@ -125,13 +121,37 @@
     self.chooseImageButton.hidden = NO;
     self.saveButton.enabled = YES;
     self.saveButton.hidden = NO;
+    self.deleteButton.enabled = NO;
+    self.deleteButton.hidden = YES;
     
     self.nameTextField.enabled = YES;
     self.lastNameTextField.enabled = YES;
     self.phoneTextField.enabled = YES;
     self.EmailTextField.enabled = YES;
 }
-#pragma mark - Additional methods
+
+- (IBAction) deleteContactAction:(id)sender
+{
+    NSString * contactDirectoryPath = [self getContactDirectoryPath];
+    NSUInteger index = [[self.contactProfile valueForKey:@"index"] integerValue];
+    NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
+    NSString * contactPath =
+        [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+    
+    [self deleteContactAtPath:contactPath];
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self blockEditing];
+        UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"Done" message:@"Contact deleted" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alert show];
+    });
+    
+    UIViewController * contactListController = [self.storyboard instantiateViewControllerWithIdentifier:@"contactList"];
+    [self.navigationController pushViewController:contactListController animated:YES];
+}
+
+#pragma mark - Manage files
+
 - (NSMutableDictionary*) createNewContactFile
 {
     NSFileManager * fileManager = [NSFileManager defaultManager];
@@ -157,7 +177,7 @@
     
     NSMutableDictionary * newContact = [[NSMutableDictionary alloc] initWithContentsOfFile:newContactPath];
     [newContact setObject: @(contactNumerator) forKey:@"index"];
-    //NSLog([fileManager copyItemAtPath:sampleFilePath toPath:newContactPath error:&error]?@"YES":@"NO");
+
     return newContact;
 }
 
@@ -169,7 +189,21 @@
     return contactDirectoryPath;
 }
 
+- (void) deleteContactAtPath: (NSString*) path
+{
+    NSFileManager * fileManager = [NSFileManager defaultManager];
+    NSError * error = nil;
+    if ([fileManager fileExistsAtPath:path])
+    {
+        [fileManager removeItemAtPath:path error:&error];
+    }
+    NSString * imagePath = [[path stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
+    if ([fileManager fileExistsAtPath:imagePath])
+        [fileManager removeItemAtPath:imagePath error:&error];
+}
+
 #pragma mark - ImagePickerDelegate
+
 - (void) imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info
 {
     [picker dismissViewControllerAnimated:YES completion:nil];
@@ -214,6 +248,8 @@
     self.chooseImageButton.hidden = YES;
     self.saveButton.enabled = NO;
     self.saveButton.hidden = YES;
+    self.deleteButton.enabled = YES;
+    self.deleteButton.hidden = NO;
     
     [self blockTextFields];
 }
@@ -240,28 +276,7 @@
         [self.chooseImageButton setTitleColor:color forState:UIControlStateNormal];
         [self.saveButton setTitleColor:color forState:UIControlStateNormal];
     }
-    /*else
-    {
-        self.view.backgroundColor = [UIColor whiteColor];
-        self.nameLable.textColor = [UIColor blackColor];
-       // self.nameLable.backgroundColor = [UIColor whiteColor];
-        self.lastNameLable.textColor = [UIColor blackColor];
-       // self.lastNameLable.backgroundColor = [UIColor whiteColor];
-        self.phoneNumberLable.textColor = [UIColor blackColor];
-        //self.phoneNumberLable.backgroundColor = [UIColor whiteColor];
-        self.emailLable.textColor = [UIColor blackColor];
-       // self.emailLable.backgroundColor = [UIColor whiteColor];
-        //self.chooseImageButton.titleLabel.textColor = [UIColor blueColor];
-        //self.saveButton.titleLabel.textColor = [UIColor blueColor];
-    }*/
-    
 }
-/*
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
+
 
 @end

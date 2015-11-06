@@ -13,7 +13,6 @@
 @interface ViewController ()
 
 @property (weak, nonatomic) IBOutlet UITableView * tableView;
-//@property (weak, nonatomic) IBOutlet UINavigationBar * navigationBar;
 @property (strong, nonatomic) NSMutableArray * contactsArray;
 
 @end
@@ -33,15 +32,12 @@
     [self reloadContactsArray];
     
     //NSLog(@"%@", [self.contactsArray description]);
-    
 }
 
 - (void) viewWillAppear:(BOOL)animated
 {
-    
     [self reloadContactsArray];
     [self.tableView reloadData];
-    
 }
 
 - (void)didReceiveMemoryWarning {
@@ -90,7 +86,7 @@
     NSArray * pathArray = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
     NSString * pathToDocumentDirectory = [pathArray objectAtIndex:0];
     NSString * contactDirectoryPath = [pathToDocumentDirectory stringByAppendingPathComponent:@"Contacts"];
-    NSLog(@"%@", pathToDocumentDirectory);
+    //NSLog(@"%@", pathToDocumentDirectory);
     
     NSFileManager * fileManager = [NSFileManager defaultManager];
     NSError * error = nil;
@@ -154,44 +150,12 @@
     else
         cell.textLabel.text = [NSString stringWithFormat:@"%@ %@", name, lastName];
     
-   [self.tableView setEditing:YES];
-    
     return cell;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
 }
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete)
-    {
-        NSMutableDictionary * contactProfile = [self.contactsArray objectAtIndex:indexPath.row];
-        NSString * contactDirectoryPath = [self getPathToContactsDirectory];
-        NSUInteger index = [[contactProfile valueForKey:@"index"] integerValue];
-        NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
-        NSString * contactPath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
-        
-        [self deleteContactAtPath:contactPath];
-        [self reloadContactsArray];
-        
-        [self.tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-
-        
-        [self.tableView reloadData];
-    }
-}
-- (UITableViewCellEditingStyle) tableView:(UITableView *)tableView editingStyleForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return UITableViewCellEditingStyleDelete;
-}
-
-- (BOOL) tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return YES;
-}
-
 
 #pragma mark - UITableViewDelegate
 

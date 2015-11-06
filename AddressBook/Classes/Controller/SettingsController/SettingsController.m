@@ -19,36 +19,10 @@
 @implementation SettingsController
 
 #pragma mark - Life cycle
-- (id) init
-{
-    self = [super init];
-    if (self)
-    {
-        self.title = @"Settings";
-        NSUserDefaults * userDefaults = [NSUserDefaults standardUserDefaults];
-        
-        if ([userDefaults objectForKey:@"numeratorOfCreatedContacts"] == 0)
-        {
-            [userDefaults setBool:NO forKey:@"SortByLastName"];
-            [userDefaults setBool:NO forKey:@"DarkInterface"];
-            [userDefaults setInteger:0 forKey:@"numeratorOfCreatedContacts"];
-            [userDefaults synchronize];
-        }
-        
-        self.nameSortSwitch.on = [userDefaults boolForKey:@"SortByLastName"];
-        self.darkInterfaceSwitch.on = [userDefaults boolForKey:@"DarkInterface"];
-        
-        
-        NSLog(@"%@", [userDefaults objectForKey:@"SortByLastName"]);
-        NSLog(@"%@", [userDefaults objectForKey:@"DarkInterface"]);
-        NSLog(@"%@", [userDefaults objectForKey:@"numeratorOfCreatedContacts"]);
-    }
-    
-    return self;
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
+    self.title = @"Settings";
+    [self verifyUserDefaults];
 
 }
 - (void) viewWillAppear:(BOOL)animated
@@ -63,6 +37,22 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+- (void) verifyUserDefaults
+{
+    NSUserDefaults * userDefaults = [NSUserDefaults standardUserDefaults];
+    if ([userDefaults objectForKey:@"numeratorOfCreatedContacts"] == 0)
+    {
+        [userDefaults setBool:NO forKey:@"SortByLastName"];
+        [userDefaults setBool:NO forKey:@"DarkInterface"];
+        [userDefaults setInteger:0 forKey:@"numeratorOfCreatedContacts"];
+        [userDefaults synchronize];
+    }
+    self.nameSortSwitch.on = [userDefaults boolForKey:@"SortByLastName"];
+    self.darkInterfaceSwitch.on = [userDefaults boolForKey:@"DarkInterface"];
+}
+
+#pragma mark - Switch actions
 
 - (IBAction)changeSortParameterAction:(UISwitch*)sender
 {
@@ -96,7 +86,6 @@
         self.nameSortLable.textColor = [UIColor blackColor];
         self.darkInterfaceLable.textColor = [UIColor blackColor];
     }
-    
 }
 
 @end
