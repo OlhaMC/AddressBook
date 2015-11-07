@@ -150,6 +150,15 @@
     else
         cell.textLabel.text = [NSString stringWithFormat:@"%@ %@", name, lastName];
     
+    NSString * contactDirectoryPath = [self getPathToContactsDirectory];
+    NSUInteger index = [[contactProfile valueForKey:@"index"] integerValue];
+    NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.png", index];
+    NSString * imagePath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+    
+    NSData * imageData = [NSData dataWithContentsOfFile:imagePath];
+    UIImage * photoImage = [UIImage imageWithData:imageData];
+    cell.imageView.image = photoImage;
+    
     return cell;
 }
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -188,7 +197,7 @@
     }
 }
 
-#pragma mark - Navigation Bar Buttons
+#pragma mark - NavigationBar Buttons
 
 - (void) addLeftNavigationButton
 {

@@ -22,6 +22,7 @@
 @property (weak, nonatomic) IBOutlet UIButton *chooseImageButton;
 @property (weak, nonatomic) IBOutlet UIButton *saveButton;
 @property (weak, nonatomic) IBOutlet UIButton *deleteButton;
+@property (weak, nonatomic) IBOutlet UIButton *photoButton;
 
 @end
 
@@ -81,11 +82,8 @@
         [contactProperties setValue:phone forKey:@"Phone Number"];
         [contactProperties setValue:email forKey:@"Email"];
         
-        NSString * contactDirectoryPath = [self getContactDirectoryPath];
-        
         NSUInteger index = [[contactProperties valueForKey:@"index"] integerValue];
-        NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
-        NSString * newContactPath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+        NSString * newContactPath = [self getContactPathWithIndex:index];
         NSString * contactImagePath = [[newContactPath stringByDeletingPathExtension] stringByAppendingPathExtension:@"png"];
         
         [contactProperties writeToFile:newContactPath atomically:YES];
@@ -115,10 +113,31 @@
     [self presentViewController:piker animated:YES completion:nil];
 }
 
+- (IBAction)choosePhotoAction:(UIButton*)sender
+{
+    if ([UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
+    {
+        UIImagePickerController * piker = [[UIImagePickerController alloc] init];
+        piker.delegate = self;
+        piker.allowsEditing = YES;
+        piker.sourceType = UIImagePickerControllerSourceTypeCamera;
+        [self presentViewController:piker animated:YES completion:nil];
+    }
+    else
+    {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            UIAlertView * alert = [[UIAlertView alloc] initWithTitle:@"No Camera" message:@"Camera is unavailable" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+            [alert show];
+        });
+    }
+}
+
 - (IBAction)editContactAction:(id)sender
 {
     self.chooseImageButton.enabled = YES;
     self.chooseImageButton.hidden = NO;
+    self.photoButton.enabled = YES;
+    self.photoButton.hidden = NO;
     self.saveButton.enabled = YES;
     self.saveButton.hidden = NO;
     self.deleteButton.enabled = NO;
@@ -132,11 +151,8 @@
 
 - (IBAction) deleteContactAction:(id)sender
 {
-    NSString * contactDirectoryPath = [self getContactDirectoryPath];
     NSUInteger index = [[self.contactProfile valueForKey:@"index"] integerValue];
-    NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.plist", index];
-    NSString * contactPath =
-        [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+    NSString * contactPath =[self getContactPathWithIndex:index];
     
     [self deleteContactAtPath:contactPath];
     
@@ -160,13 +176,8 @@
     NSUInteger contactNumerator = [userDefaults integerForKey:@"numeratorOfCreatedContacts"]+1;
     
     NSError * error = nil;
-    NSString * contactDirectoryPath = [self getContactDirectoryPath];
-    
-    // NSLog([fileManager fileExistsAtPath:contactDirectoryPath]?@"YES":@"NO");
     NSString * sampleFilePath = [[NSBundle mainBundle] pathForResource:@"SampleFile" ofType:@"plist"];
-    NSString * newContactPath =
-    [contactDirectoryPath stringByAppendingPathComponent:
-     [NSString stringWithFormat:@"Contact%ld.plist", contactNumerator]];
+    NSString * newContactPath = [self getContactPathWithIndex:contactNumerator];
     
     if (![fileManager fileExistsAtPath:newContactPath])
     {
@@ -187,6 +198,24 @@
     NSString * pathToDocumentDirectory = [pathArray objectAtIndex:0];
     NSString * contactDirectoryPath = [pathToDocumentDirectory stringByAppendingPathComponent:@"Contacts"];
     return contactDirectoryPath;
+}
+
+- (NSString*) getContactPathWithIndex: (NSUInteger) index
+{
+    NSString * contactDirectoryPath = [self getContactDirectoryPath];
+    NSString * contactPath =
+    [contactDirectoryPath stringByAppendingPathComponent:
+     [NSString stringWithFormat:@"Contact%ld.plist", index]];
+    return contactPath;
+}
+
+- (NSString*) getImagePathWithIndex: (NSUInteger) index
+{
+    NSString * contactDirectoryPath = [self getContactDirectoryPath];
+    NSString * imagePath =
+    [contactDirectoryPath stringByAppendingPathComponent:
+     [NSString stringWithFormat:@"Contact%ld.png", index]];
+    return imagePath;
 }
 
 - (void) deleteContactAtPath: (NSString*) path
@@ -230,10 +259,8 @@
     self.phoneTextField.text = [contactProfile valueForKey:@"Phone Number"];
     self.EmailTextField.text = [contactProfile valueForKey:@"Email"];
     
-    NSString * contactDirectoryPath = [self getContactDirectoryPath];
     NSUInteger index = [[contactProfile valueForKey:@"index"] integerValue];
-    NSString * pathComponent = [[NSString alloc] initWithFormat:@"Contact%ld.png", index];
-    NSString * imagePath = [contactDirectoryPath stringByAppendingPathComponent:pathComponent];
+    NSString * imagePath = [self getImagePathWithIndex:index];
     
     NSData * imageData = [NSData dataWithContentsOfFile:imagePath];
     UIImage * photoImage = [UIImage imageWithData:imageData];
@@ -246,6 +273,8 @@
 {
     self.chooseImageButton.enabled = NO;
     self.chooseImageButton.hidden = YES;
+    self.photoButton.enabled = NO;
+    self.photoButton.hidden = YES;
     self.saveButton.enabled = NO;
     self.saveButton.hidden = YES;
     self.deleteButton.enabled = YES;

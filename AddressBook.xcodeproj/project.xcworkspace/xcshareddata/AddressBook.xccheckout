@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>25A15B48-DD9D-405B-921C-CB66808026B7</string>
+	<key>IDESourceControlProjectName</key>
+	<string>AddressBook</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>FE10F8642C973E71334F3E74141B302B6F119816</key>
+		<string>https://github.com/OlhaMC/AddressBook.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>AddressBook.xcodeproj</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>FE10F8642C973E71334F3E74141B302B6F119816</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/OlhaMC/AddressBook.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>FE10F8642C973E71334F3E74141B302B6F119816</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>FE10F8642C973E71334F3E74141B302B6F119816</string>
+			<key>IDESourceControlWCCName</key>
+			<string>AddressBook</string>
+		</dict>
+	</array>
+</dict>
+</plist>
